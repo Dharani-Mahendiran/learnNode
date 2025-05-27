@@ -1,7 +1,6 @@
 import express from 'express';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config'; 
 import {connectDB} from './config/db.js';
 import movieRoute from './routes/movies.route.js';
 import songRoutes from './routes/songs.route.js';
