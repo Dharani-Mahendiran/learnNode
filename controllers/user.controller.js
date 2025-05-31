@@ -63,9 +63,9 @@ export const loginUser = async(req, res) => {
             {expiresIn : process.env.JWT_EXPIRY || '1d'}
         )
         
-        user = await userData(user.id);
-        const userData = {...user, token};
-        return res.status(200).json({message: 'User logged in successfully', user:userData});
+        const userInfo = await userData(user.id);
+        const userResponse = {...userInfo, token};
+        return res.status(200).json({message: 'User logged in successfully', user:userResponse});
     }catch(error){
         return res.status(500).json({message: `User login failed ${error.message}`});
     }
@@ -74,7 +74,9 @@ export const loginUser = async(req, res) => {
 
 export const updateProfile = async(req, res) => {
     try{
-       const updateUser =  await models.User.findOneAndUpdate({_id:req.params.id, is_active:true}, req.body, {new:true});
+       const updatedData = {...req.body};
+       updatedData.password = await bcrypt.hash(updatedData.password, salt_rounds);
+       const updateUser =  await models.User.findOneAndUpdate({_id:req.params.id, is_active:true}, updatedData, {new:true});
        if(!updateUser){
         return res.status(400).json({message: `User not found with the given id: ${req.params.id}`});
        }
