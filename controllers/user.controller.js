@@ -54,8 +54,6 @@ export const loginUser = async(req, res) => {
         const payload = {
             id: user.id
         }
-        if(user.email) payload.email = user.email;
-        if(user.country_code && user.mobile_number) payload.mobile_number = user.country_code + user.mobile_number;
 
         const token = JWT.sign(
             payload,
@@ -120,6 +118,19 @@ export const reactivateProfile = async (req, res) => {
         return res.status(200).json({message: `User profile reactivated successfully`, user});
     }catch(error){
         return res.status(500).json({message: `User profile reactivation failed ${error.message}`});
+    }
+}
+
+export const getCurrentUser = async (req, res) => {
+    try{
+        const user = await userData(req.user.id);
+        if(!user){
+            return res.status(404).json({message: `User not found with id ${req.user.id}`});
+        }
+        console.log('user', user);
+        return res.status(200).json({message: `Current user data`, user}); 
+      }catch(error){
+        return res.status(500).json({message: `Get current user failed ${error.message}`})
     }
 }
 

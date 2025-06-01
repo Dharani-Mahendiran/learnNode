@@ -18,11 +18,6 @@ app.use('/songs', songRoutes);
 app.use('/user', userRoutes);
 
 
-
-
-
-
-
 connectDB().then(() =>{
     app.listen(PORT, ()=>{
      console.log(`Server running on Port http://localhost:${PORT}`)
