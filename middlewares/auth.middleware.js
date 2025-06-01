@@ -1,20 +1,21 @@
 import JWT from 'jsonwebtoken';
 import 'dotenv/config';
+import {sendSuccess, sendError} from '../config/utils.js';
 
 export const isAuth = (req, res, next) => {
     try{
         const authHeader = req.headers.authorization;
         if(!authHeader || !authHeader.startsWith('Bearer ')){
-            return res.status(401).json({message:`Invalid Token`});
+            return sendError(res, 'UnAuthorized', 'Invalid Token', 401);
         }
         const token = authHeader.split(' ')[1];
         const verifytoken = JWT.verify(token, process.env.JWT_SECRET);
         if(!verifytoken){
-            return res.status(401).json({message:`Unauthorized Access`});
+            return sendError(res, 'UnAuthorized Access', null, 401);
         }
         req.user = verifytoken;
         next();
     }catch(error){
-        return res.status(500).json({message:`JWT Token verification failed ${error.message}`});
+        return sendError(res, 'JWT Token verification failed', error.message, 500);
     }
 };

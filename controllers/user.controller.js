@@ -2,6 +2,7 @@ import models from '../models/main.model.js';
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import JWT from 'jsonwebtoken';
+import {sendSuccess, sendError} from '../config/utils.js';
 
 const salt_rounds = Number(process.env.SALT_ROUNDS) || 10;
 
@@ -17,9 +18,9 @@ export const registerUser = async(req, res) => {
             dob:req.body.dob,
             password:hashedPassword
         }).save();
-        return res.status(201).json({message:'User Registered Successfully', user});
+        return sendSuccess(res, 'User Registered Successfully', user, 201);
     }catch(error){
-        return res.status(500).json({message : `RegisterUser failed: ${error.message}`});
+        return sendError(res, 'RegisterUser failed', error.message);
     }
 };
 
@@ -28,10 +29,10 @@ export const loginUser = async(req, res) => {
         const {email, country_code, mobile_number, password} = req.body;
         if(!email){
             if((!country_code || !mobile_number)){
-                return res.status(400).json({message: 'Email or country code with mobile number is required'});	
+              return sendError(res, 'Validation Error', 'Email or country code with mobile number is required', 400);
             }
         }else if(!password){
-            return res.status(400).json({message: 'Password is required'});
+            return sendError(res, 'Validation Error', 'Password is required', 400);
         }
 
         let user;
@@ -42,12 +43,12 @@ export const loginUser = async(req, res) => {
         }
 
         if(!user){
-              return res.status(404).json({message: 'User not found with the given credentials'});
+            return sendError(res, 'User not found with the given credentials', null, 404);
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if(!isPasswordValid){
-            return res.status(401).json({message: 'Invalid password'});
+            return sendError(res, 'UnAuthorized', 'Invalid password', 401);
         }
 
         // Generate jwt token
@@ -63,9 +64,9 @@ export const loginUser = async(req, res) => {
         
         const userInfo = await userData(user.id);
         const userResponse = {...userInfo, token};
-        return res.status(200).json({message: 'User logged in successfully', user:userResponse});
+        return sendSuccess(res, 'User logged in successfully', {user:userResponse});
     }catch(error){
-        return res.status(500).json({message: `User login failed ${error.message}`});
+        return sendError(res, 'User login failed', error.message);
     }
 };
 
@@ -76,12 +77,12 @@ export const updateProfile = async(req, res) => {
        updatedData.password = await bcrypt.hash(updatedData.password, salt_rounds);
        const updateUser =  await models.User.findOneAndUpdate({_id:req.params.id, is_active:true}, updatedData, {new:true});
        if(!updateUser){
-        return res.status(400).json({message: `User not found with the given id: ${req.params.id}`});
+        return sendError(res, `User not found with id ${req.params.id}`, null, 404);
        }
        const user = await userData(updateUser.id);
-       return res.status(200).json({message: `User profile updated successfully`, user});
+       return sendSuccess(res, `User profile updated successfully`, user);
     }catch(error){
-        return res.status(500).json({message: `User profile update failed ${error.message}`});
+       return sendError(res, 'User profile update failed', error.message);
     }
 }
 
@@ -95,12 +96,12 @@ export const deleteProfile = async(req, res) => {
         );
 
         if(!deleteUser){
-            return res.status(404).json({message: `User not found with id ${req.params.id}`});
+            return sendError(res, `User not found with id ${req.params.id}`, null, 404);
         }
         const user = await userData(deleteUser.id);
-        return res.status(200).json({message: `User profile deleted successfully`, user});
+        return sendSuccess(res, `User profile deleted successfully`, user);
     }catch(error){
-        return res.status(500).json({message: `User profile deletion failed ${error.message}`});
+        return sendError(res, 'User profile deletion failed', error.message);
     }
 }
 
@@ -112,12 +113,12 @@ export const reactivateProfile = async (req, res) => {
             {new:true}
         )
         if(!reactivateUser){
-            return res.status(404).json({message: `User not found with id ${req.params.id}`});
+           return sendError(res, `User not found with id ${req.params.id}`, null, 404);
         }
         const user = await userData(reactivateUser.id);
-        return res.status(200).json({message: `User profile reactivated successfully`, user});
+        return sendSuccess(res, `User profile reactivated successfully`, user);
     }catch(error){
-        return res.status(500).json({message: `User profile reactivation failed ${error.message}`});
+        return sendError(res, 'User profile reactivation failed', error.message);
     }
 }
 
@@ -125,12 +126,12 @@ export const getCurrentUser = async (req, res) => {
     try{
         const user = await userData(req.user.id);
         if(!user){
-            return res.status(404).json({message: `User not found with id ${req.user.id}`});
+            return sendError(res, `User not found with id ${req.params.id}`, null, 404);
         }
         console.log('user', user);
-        return res.status(200).json({message: `Current user data`, user}); 
+        return sendSuccess(res, `Fetched Current user data`, user);
       }catch(error){
-        return res.status(500).json({message: `Get current user failed ${error.message}`})
+        return sendError(res, 'Get current user failed', error.message);
     }
 }
 

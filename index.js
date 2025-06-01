@@ -17,6 +17,16 @@ app.use('/movies', movieRoute);
 app.use('/songs', songRoutes);
 app.use('/user', userRoutes);
 
+// handle 404 routes
+app.use((req,res) => {
+    res.status(404).json({
+        success:false,
+        status_code: 404,
+        message: 'Route not found',
+        errors: null
+    });
+});
+
 
 connectDB().then(() =>{
     app.listen(PORT, ()=>{
