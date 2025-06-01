@@ -1,27 +1,25 @@
 import models from '../models/main.model.js';
+import {sendSuccess, sendError} from '../config/utils.js';
 
 export const getSongs = async(req, res) => {
    try{
       const songs =  await models.Song.find();
-      if(!songs || songs.length === 0){
-         return res.status(200).json({message: `No songs found`});
-      }
-      return res.status(200).json({message: `Songs fetched`, songs})
-
+      if(!songs || songs.length === 0)
+            return sendSuccess(res, 'No songs found');
+      return sendSuccess(res, 'Get songs', songs);
    }catch(error){
-      return res.status(500).json({message:`Get all songs failed ${error.message}`});
+      return sendError(res, 'Get songs failed', error.message);
    }
 
 };
 export const getSongById = async (req,res) => {
    try{
        const song = await models.Song.findById(req.params.id);
-       if(!song){
-         return res.status(404).json({message: `Song not found with id ${req.params.id}`});	
-       }
-         return res.status(200).json({message: `Song fetched`, song});
+       if(!song)
+         return sendError(res, 'Song not found with id ${req.params.id}', null, 404);
+       return sendSuccess(res, 'Get song by id', song);
    }catch(error){
-      return res.status(500).json({message:`Get song by id failed ${error.message}`});
+     return sendError(res, 'Get song by id failed', error.message);
    }
 };
 
@@ -31,39 +29,36 @@ export const createSong = async (req, res) => {
             name: req.body.name,
             description: req.body.description
       }).save();
-      return res.status(201).json({message:`Song created`, createSong});
+      return sendSuccess(res, 'Create song', createSong, 201);
    }catch(error){
-     return res.status(500).json({message :`Create song api failed ${error.message}`});
+       return sendError(res, 'Create song failed', error.message);
    }
 };
 
 export const updateSong = async (req, res) => {
     try{
          const song =  await models.Song.findByIdAndUpdate(req.params.id, req.body, {new:true});
-         if(!song){
-            return res.status(404).json({message: `Song not found with id ${req.params.id}`});
-         }
-         return res.status(200).json({message: `Song updated`, song});
+         if(!song)
+            return sendError(res, 'Song not found with id ${req.params.id}', null, 404);
+         return sendSuccess(res, 'Update song', song);
     }catch(error){
-      return res.status(500).json({message:`Update song failed ${error.message}`});
+       return sendError(res, 'Update song failed', error.message);
     }
 };
 
 export const deleteSong = async (req, res) => {
-      try{
-              const song = await models.Song.findByIdAndUpdate(
-      req.params.id,
-      { is_active: false },
-      { new: true }
-    );
+   try{
+      const song = await models.Song.findByIdAndUpdate(
+         req.params.id,
+         { is_active: false },
+         { new: true }
+      );
 
-         //   findByIdAndDelete
-           if(!song){
-              return res.status(404).json({message: `Song not found with id ${req.params.id}`});
-           }
-
-             return res.status(200).json({message: `Song deleted successfully`, song});
-      }catch{
-         return res.status(500).json({message:`Delete song failed ${error.message}`});
-      }
+      //findByIdAndDelete
+      if(!song)
+         return sendError(res, 'Song not found with id ${req.params.id}', null, 404);
+      return sendSuccess(res, 'Delete song', song);
+   }catch{
+       return sendError(res, 'Delete song failed', error.message);
+   }
 };
